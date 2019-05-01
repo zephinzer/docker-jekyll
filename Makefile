@@ -3,6 +3,13 @@ image:
 		--tag zephinzer/jekyll:latest \
 		.
 
+image_publish: image
+	@docker push zephinzer/jekyll:latest
+	@docker tag zephinzer/jekyll:latest zephinzer/jekyll:$$(docker run -it --entrypoint "/version" zephinzer/jekyll:latest)
+	@docker push zephinzer/jekyll:$$(docker run -it --entrypoint "/version" zephinzer/jekyll:latest)
+	@docker tag zephinzer/jekyll:latest zephinzer/jekyll:$$(docker run -it --entrypoint "jekyll" zephinzer/jekyll:latest --version | cut -f 2 -d ' ' | tr -d '[:space:]')
+	@docker push zephinzer/jekyll:$$(docker run -it --entrypoint "jekyll" zephinzer/jekyll:latest --version | cut -f 2 -d ' ' | tr -d '[:space:]')
+
 start: image
 	@if [ "${NAME}" = "" ]; then echo "\nerr: a \$$NAME needs to be specified\n"; exit 1; fi;
 	@mkdir -p $$(pwd)/cache/tmp/bundler/home/unknown;

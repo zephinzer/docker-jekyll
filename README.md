@@ -18,6 +18,8 @@ mkdir -p ./themes;
 
 > The last directory is for storing your themes being worked on. You can use Git submodules to manage them!
 
+Also, you should add the `./cache` to the `.gitignore` file if you're intending to check it into version control.
+
 ## Creating a new theme
 
 ```sh
