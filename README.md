@@ -32,7 +32,7 @@ THEME_NAME=new_theme \
     --volume "$(pwd)/cache/usr/local/bundler/cache:/usr/local/bundler/cache/" \
     --workdir /theme \
     zephinzer/jekyll:latest \
-    new ${THEME_NAME}; \
+    new-theme ${THEME_NAME}; \
 ```
 
 ## Working on an existing theme
@@ -47,6 +47,19 @@ THEME_NAME=new_theme \
     --volume "$(pwd)/cache/usr/local/bundler/cache:/usr/local/bundler/cache/" \
     --workdir /theme \
     zephinzer/jekyll:latest;
+```
+
+## Working on a theme in the current directory
+
+```sh
+docker run -it \
+  --network host \
+  --user $(id -u) \
+  --volume "$(pwd):/theme" \
+  --volume "$(pwd)/cache/tmp/bundler/home/unknown:/tmp/bundler/home/unknown" \
+  --volume "$(pwd)/cache/usr/local/bundler/cache:/usr/local/bundler/cache/" \
+  --workdir /theme \
+  zephinzer/jekyll:latest;
 ```
 
 # License

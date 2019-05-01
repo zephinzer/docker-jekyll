@@ -10,7 +10,62 @@ image_publish: image
 	@docker tag zephinzer/jekyll:latest zephinzer/jekyll:$$(docker run -it --entrypoint "jekyll" zephinzer/jekyll:latest --version | cut -f 2 -d ' ' | tr -d '[:space:]')
 	@docker push zephinzer/jekyll:$$(docker run -it --entrypoint "jekyll" zephinzer/jekyll:latest --version | cut -f 2 -d ' ' | tr -d '[:space:]')
 
-start: image
+init: image
+	@mkdir -p ./site
+	@docker run \
+		-it \
+		--entrypoint "/init" \
+		--publish 4000:4000 \
+		--publish 4001:4001 \
+		--user $$(id -u) \
+		--volume "$$(pwd)/site:/jekyll" \
+		--volume "$$(pwd)/cache/tmp/bundler/home/unknown:/tmp/bundler/home/unknown" \
+		--volume "$$(pwd)/cache/usr/local/bundler/cache:/usr/local/bundler/cache/" \
+		--workdir /jekyll \
+		zephinzer/jekyll:latest
+
+start:
+	@docker run \
+		-it \
+		--publish 4000:4000 \
+		--publish 4001:4001 \
+		--user $$(id -u) \
+		--volume "$$(pwd)/site:/jekyll" \
+		--volume "$$(pwd)/cache/tmp/bundler/home/unknown:/tmp/bundler/home/unknown" \
+		--volume "$$(pwd)/cache/usr/local/bundler/cache:/usr/local/bundler/cache/" \
+		zephinzer/jekyll:latest;
+	
+
+site: image
+	@if [ "${NAME}" = "" ]; then echo "\nerr: a \$$NAME needs to be specified\n"; exit 1; fi;
+	@mkdir -p $$(pwd)/cache/tmp/bundler/home/unknown;
+	@mkdir -p $$(pwd)/cache/usr/local/bundler/cache;
+	@mkdir -p $$(pwd)/sites;
+	@if [ -f "$$(pwd)/sites/${NAME}/Gemfile" ]; then \
+		docker run \
+			-it \
+			--publish 4000:4000 \
+			--publish 4001:4001 \
+			--user $$(id -u) \
+			--volume "$$(pwd)/sites/${NAME}:/site" \
+			--volume "$$(pwd)/cache/tmp/bundler/home/unknown:/tmp/bundler/home/unknown" \
+			--volume "$$(pwd)/cache/usr/local/bundler/cache:/usr/local/bundler/cache/" \
+			--workdir /site \
+			zephinzer/jekyll:latest; \
+	else \
+		docker run \
+			-it \
+			--entrypoint "jekyll" \
+			--user $$(id -u) \
+			--volume "$$(pwd)/sites:/site" \
+			--volume "$$(pwd)/cache/tmp/bundler/home/unknown:/tmp/bundler/home/unknown" \
+			--volume "$$(pwd)/cache/usr/local/bundler/cache:/usr/local/bundler/cache/" \
+			--workdir /site \
+			zephinzer/jekyll:latest \
+			new ${NAME}; \
+	fi
+
+theme: image
 	@if [ "${NAME}" = "" ]; then echo "\nerr: a \$$NAME needs to be specified\n"; exit 1; fi;
 	@mkdir -p $$(pwd)/cache/tmp/bundler/home/unknown;
 	@mkdir -p $$(pwd)/cache/usr/local/bundler/cache;
@@ -36,5 +91,5 @@ start: image
 			--volume "$$(pwd)/cache/usr/local/bundler/cache:/usr/local/bundler/cache/" \
 			--workdir /theme \
 			zephinzer/jekyll:latest \
-			new ${NAME}; \
+			new-theme ${NAME}; \
 	fi

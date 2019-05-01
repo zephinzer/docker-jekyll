@@ -9,8 +9,11 @@ RUN chmod +x /version
 # this is used for serving
 COPY ./resources/serve.sh /serve
 RUN chmod +x /serve
+# this is used for initialisation
+COPY ./resources/init.sh /init
+RUN chmod +x /init
 # this next `chmod` seems necessary to run as someone other than root
 RUN mkdir -p /usr/local/bundler /usr/local/bundle \
   && chmod 777 -R /usr/local/bundler /usr/local/bundle
-WORKDIR /
+WORKDIR /jekyll
 ENTRYPOINT ["/serve"]
