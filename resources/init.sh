@@ -1,16 +1,34 @@
 #!/bin/sh
-mkdir -p ./sites;
-cd ./sites \
-  && jekyll new site \
-  && cd ..;
 
-mkdir -p ./themes;
-cd ./themes \
-  && jekyll new-theme theme \
-  && cd ..;
+init_site() {
+  mkdir -p ./sites;
+  cd ./sites \
+    && jekyll new site \
+    && cd ..;
+  cp -r ./sites/site/* ./;
+  rm -rf ./sites;
+}
 
-cp -r ./themes/theme/.* ./;
-rm -rf ./themes;
+init_theme() {
+  mkdir -p ./themes;
+  cd ./themes \
+    && jekyll new-theme theme \
+    && rm -rf ./theme/.git \
+    && cd ..;
+  cp -r ./themes/theme/* ./;
+  rm -rf ./themes;
+}
 
-cp -r ./sites/site/* ./;
-rm -rf ./sites;
+case $@ in
+  "site")
+    init_site
+  ;;
+  "theme")
+    init_theme
+  ;;
+  *)
+    init_theme
+    init_site
+  ;;
+esac
+

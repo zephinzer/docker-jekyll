@@ -10,86 +10,37 @@ image_publish: image
 	@docker tag zephinzer/jekyll:latest zephinzer/jekyll:$$(docker run -it --entrypoint "jekyll" zephinzer/jekyll:latest --version | cut -f 2 -d ' ' | tr -d '[:space:]')
 	@docker push zephinzer/jekyll:$$(docker run -it --entrypoint "jekyll" zephinzer/jekyll:latest --version | cut -f 2 -d ' ' | tr -d '[:space:]')
 
-init: image
-	@mkdir -p ./site
-	@docker run \
-		-it \
-		--entrypoint "/init" \
+clean_eg:
+	@rm -rf ./example/*
+
+eg_version:
+	$(MAKE) _eg_base cmd=version
+
+eg_init:
+	$(MAKE) _eg_base cmd=init
+
+eg_init_site:
+	$(MAKE) _eg_base cmd=init-site
+
+eg_init_theme:
+	$(MAKE) _eg_base cmd=init-theme
+
+eg_serve:
+	$(MAKE) _eg_base cmd=serve
+
+eg_help:
+	$(MAKE) _eg_base cmd=help
+
+_eg_base:
+	@if [ "${cmd}" = "" ]; then echo "\nerr: you need to specify a \$$cmd variable\n"; exit 1; fi;
+	@mkdir -p \
+		$$(pwd)/cache/tmp/bundler/home/unknown \
+		$$(pwd)/cache/usr/local/bundler/cache
+	docker run -it \
 		--publish 4000:4000 \
 		--publish 4001:4001 \
 		--user $$(id -u) \
-		--volume "$$(pwd)/site:/jekyll" \
+		--volume "$$(pwd)/example:/jekyll" \
 		--volume "$$(pwd)/cache/tmp/bundler/home/unknown:/tmp/bundler/home/unknown" \
 		--volume "$$(pwd)/cache/usr/local/bundler/cache:/usr/local/bundler/cache/" \
-		--workdir /jekyll \
-		zephinzer/jekyll:latest
-
-start:
-	@docker run \
-		-it \
-		--publish 4000:4000 \
-		--publish 4001:4001 \
-		--user $$(id -u) \
-		--volume "$$(pwd)/site:/jekyll" \
-		--volume "$$(pwd)/cache/tmp/bundler/home/unknown:/tmp/bundler/home/unknown" \
-		--volume "$$(pwd)/cache/usr/local/bundler/cache:/usr/local/bundler/cache/" \
-		zephinzer/jekyll:latest;
-	
-
-site: image
-	@if [ "${NAME}" = "" ]; then echo "\nerr: a \$$NAME needs to be specified\n"; exit 1; fi;
-	@mkdir -p $$(pwd)/cache/tmp/bundler/home/unknown;
-	@mkdir -p $$(pwd)/cache/usr/local/bundler/cache;
-	@mkdir -p $$(pwd)/sites;
-	@if [ -f "$$(pwd)/sites/${NAME}/Gemfile" ]; then \
-		docker run \
-			-it \
-			--publish 4000:4000 \
-			--publish 4001:4001 \
-			--user $$(id -u) \
-			--volume "$$(pwd)/sites/${NAME}:/site" \
-			--volume "$$(pwd)/cache/tmp/bundler/home/unknown:/tmp/bundler/home/unknown" \
-			--volume "$$(pwd)/cache/usr/local/bundler/cache:/usr/local/bundler/cache/" \
-			--workdir /site \
-			zephinzer/jekyll:latest; \
-	else \
-		docker run \
-			-it \
-			--entrypoint "jekyll" \
-			--user $$(id -u) \
-			--volume "$$(pwd)/sites:/site" \
-			--volume "$$(pwd)/cache/tmp/bundler/home/unknown:/tmp/bundler/home/unknown" \
-			--volume "$$(pwd)/cache/usr/local/bundler/cache:/usr/local/bundler/cache/" \
-			--workdir /site \
-			zephinzer/jekyll:latest \
-			new ${NAME}; \
-	fi
-
-theme: image
-	@if [ "${NAME}" = "" ]; then echo "\nerr: a \$$NAME needs to be specified\n"; exit 1; fi;
-	@mkdir -p $$(pwd)/cache/tmp/bundler/home/unknown;
-	@mkdir -p $$(pwd)/cache/usr/local/bundler/cache;
-	@mkdir -p $$(pwd)/themes;
-	@if [ -f "$$(pwd)/themes/${NAME}/Gemfile" ]; then \
-		docker run \
-			-it \
-			--publish 4000:4000 \
-			--publish 4001:4001 \
-			--user $$(id -u) \
-			--volume "$$(pwd)/themes/${NAME}:/theme" \
-			--volume "$$(pwd)/cache/tmp/bundler/home/unknown:/tmp/bundler/home/unknown" \
-			--volume "$$(pwd)/cache/usr/local/bundler/cache:/usr/local/bundler/cache/" \
-			--workdir /theme \
-			zephinzer/jekyll:latest; \
-	else \
-		docker run \
-			-it \
-			--entrypoint "jekyll" \
-			--user $$(id -u) \
-			--volume "$$(pwd)/themes:/theme" \
-			--volume "$$(pwd)/cache/tmp/bundler/home/unknown:/tmp/bundler/home/unknown" \
-			--volume "$$(pwd)/cache/usr/local/bundler/cache:/usr/local/bundler/cache/" \
-			--workdir /theme \
-			zephinzer/jekyll:latest \
-			new-theme ${NAME}; \
-	fi
+		zephinzer/jekyll:latest ${cmd}
